@@ -14,6 +14,7 @@ from ..common.style_sheet import StyleSheet
 from ..common.trie import Trie
 
 import requests
+import json
 from io import BytesIO
 from PIL import Image
 from .CONFIG import COMMON_LOADING, COMMON_ERROR
@@ -112,26 +113,44 @@ class BaDataInterface(KoyukiInterface):
             parent=parent
         )
         self.setObjectName('baDataInterface')
+        url = 'https://arona.cdn.diyigemt.com/image'
         
         cardStart = StartCard(self)
         self.vBoxLayout.addWidget(cardStart, 0, Qt.AlignTop)
         
-        self.card_zongli = DataCard('国际服总力战', 'https://arona.cdn.diyigemt.com/image/some/国际服总力.png')
+        self.card_huodong = DataCard('国际服活动', url + self.activitySearch())
+        self.vBoxLayout.addWidget(self.card_huodong, 0, Qt.AlignTop)
+        
+        self.card_zongli = DataCard('国际服总力战', url + '/some/国际服总力.png')
         self.vBoxLayout.addWidget(self.card_zongli, 0, Qt.AlignTop)
         
-        self.card_huoli = DataCard('国际服火力演习', 'https://arona.cdn.diyigemt.com/image/some/国际服火力演习.png')
+        self.card_huoli = DataCard('国际服火力演习', url + '/some/国际服火力演习.png')
         self.vBoxLayout.addWidget(self.card_huoli, 0, Qt.AlignTop)
         
-        self.card_jjc = DataCard('国际服竞技场', 'https://arona.cdn.diyigemt.com/image/some/日服竞技场.png')
+        self.card_jjc = DataCard('国际服竞技场', url + '/some/日服竞技场.png')
         self.vBoxLayout.addWidget(self.card_jjc, 0, Qt.AlignTop)
         
-        self.card_weilai = DataCard('国际服未来视', 'https://arona.cdn.diyigemt.com/image/some/国际服未来视.png')
+        self.card_weilai = DataCard('国际服未来视', url + '/some/国际服未来视.png')
         self.vBoxLayout.addWidget(self.card_weilai, 0, Qt.AlignTop)
         
-        self.card_renquan = DataCard('国际服人权', 'https://arona.cdn.diyigemt.com/image/some/日服人权.png')
+        self.card_renquan = DataCard('国际服人权', url + '/some/日服人权.png')
         self.vBoxLayout.addWidget(self.card_renquan, 0, Qt.AlignTop)
         
+    
+    def activitySearch(self):
+        """ 获取国际服最新活动攻略地址 """
+        url = "https://arona.diyigemt.com/api/v1/image?name=国际服活动"
+        try:
+            response_data = requests.get(url, timeout=30)
+            response_data.raise_for_status()
+            response_data.encoding = response_data.apparent_encoding
+            json_data = response_data.json()
+            return json_data['data'][0]['path']
+        except:
+            return 'ERROR'
+        
     def updateData(self):
+        self.card_huodong.fetch_image()
         self.card_zongli.fetch_image()
         self.card_huoli.fetch_image()
         self.card_jjc.fetch_image()
