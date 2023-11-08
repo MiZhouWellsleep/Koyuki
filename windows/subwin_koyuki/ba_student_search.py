@@ -40,10 +40,9 @@ class FetchImageThread(QThread):
         self.fetchingStarted.emit()
         try:
             response_img = requests.get(self.res_url)
-            image_data = BytesIO(response_img.content)
-            pil_image = Image.open(image_data)
-            pil_image = pil_image.convert("RGBA")
-            pixmap = QPixmap.fromImage(QImage(pil_image.tobytes(), pil_image.size[0], pil_image.size[1], QImage.Format_RGBA8888))
+            image_data = response_img.content
+            image = QImage.fromData(image_data)
+            pixmap = QPixmap.fromImage(image)
         except:
             pixmap = QPixmap(COMMON_ERROR)
         self.imageFetched.emit(pixmap)

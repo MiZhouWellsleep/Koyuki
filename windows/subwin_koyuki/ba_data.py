@@ -19,6 +19,8 @@ from io import BytesIO
 from PIL import Image
 from .CONFIG import COMMON_LOADING, COMMON_ERROR
 
+timeout_time = 30
+
 class FetchImageThread(QThread):
     imageFetched = pyqtSignal(QPixmap)
     fetchingStarted = pyqtSignal()
@@ -31,11 +33,14 @@ class FetchImageThread(QThread):
     def run(self):
         self.fetchingStarted.emit()
         try:
-            response_img = requests.get(self.res_url)
-            image_data = BytesIO(response_img.content)
-            pil_image = Image.open(image_data)
-            pil_image = pil_image.convert("RGBA")
-            pixmap = QPixmap.fromImage(QImage(pil_image.tobytes(), pil_image.size[0], pil_image.size[1], QImage.Format_RGBA8888))
+            response_img = requests.get(self.res_url, timeout=timeout_time)
+            image_data = response_img.content
+            image = QImage.fromData(image_data)
+            pixmap = QPixmap.fromImage(image)
+            # image_data = BytesIO(response_img.content)
+            # pil_image = Image.open(image_data)
+            # pil_image = pil_image.convert("RGBA")
+            # pixmap = QPixmap.fromImage(QImage(pil_image.tobytes(), pil_image.size[0], pil_image.size[1], QImage.Format_RGBA8888))
         except:
             pixmap = QPixmap(COMMON_ERROR)
         self.imageFetched.emit(pixmap)
@@ -79,11 +84,14 @@ class DataCard(KoyukiCard):
         
         
     def showNewData(self):
-        responseImg = requests.get(self.imgUrl)
-        image_data = BytesIO(responseImg.content)
-        pil_image = Image.open(image_data)
-        pil_image = pil_image.convert("RGBA")
-        pixmap = QPixmap.fromImage(QImage(pil_image.tobytes(), pil_image.size[0], pil_image.size[1], QImage.Format_RGBA8888))
+        responseImg = requests.get(self.imgUrl, timeout=timeout_time)
+        # image_data = BytesIO(responseImg.content)
+        # pil_image = Image.open(image_data)
+        # pil_image = pil_image.convert("RGBA")
+        # pixmap = QPixmap.fromImage(QImage(pil_image.tobytes(), pil_image.size[0], pil_image.size[1], QImage.Format_RGBA8888))
+        image_data = responseImg.content
+        image = QImage.fromData(image_data)
+        pixmap = QPixmap.fromImage(image)
         self.dataImg.setPixmap(pixmap)
         self.dataImg.scaledToWidth(800)
         
@@ -141,7 +149,7 @@ class BaDataInterface(KoyukiInterface):
         """ 获取国际服最新活动攻略地址 """
         url = "https://arona.diyigemt.com/api/v1/image?name=国际服活动"
         try:
-            response_data = requests.get(url, timeout=30)
+            response_data = requests.get(url, timeout=timeout_time)
             response_data.raise_for_status()
             response_data.encoding = response_data.apparent_encoding
             json_data = response_data.json()
