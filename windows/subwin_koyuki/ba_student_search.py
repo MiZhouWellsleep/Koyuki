@@ -1,6 +1,6 @@
 from typing import List
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QThread
-from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget, QHBoxLayout, QCompleter
 from PyQt5.QtGui import QPixmap, QImage
 from qfluentwidgets import (FluentIcon, IconWidget, FlowLayout, isDarkTheme,
                             Theme, applyThemeColor, SmoothScrollArea, SearchLineEdit, StrongBodyLabel,
@@ -58,6 +58,8 @@ class StudentWikiView(QWidget):
         
         self.testLabel = StrongBodyLabel(self.tr('输入学生名称，查询学生攻略（支持部分别名搜索）'), self)
         self.searchLineEdit = LineEdit(self)
+        self.searchWithCompleter()  # 搜索框提示
+
         self.resLabel = BodyLabel(self.tr('搜索结果在此处显示'), self)
 
         self.view = QFrame(self)
@@ -117,6 +119,25 @@ class StudentWikiView(QWidget):
         indexes = {i[1] for i in items}
         self.flowLayout.removeAllWidgets()
         #print("*********\n")
+    
+    def searchWithCompleter(self):
+        # 搜索框提示
+        stands = []
+        url_babot = "https://raw.githubusercontent.com/lgc-NB2Dev/bawiki-data/main/data/stu_alias.json"
+        try:
+            response_babot = requests.get(url_babot, verify=False)
+            data_babot = response_babot.json()
+            for key, value in data_babot.items():
+                stands.append(key)
+                for item in value:
+                    stands.append(item)
+        except:
+            pass
+        completer = QCompleter(stands, self.searchLineEdit)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setMaxVisibleItems(10)
+        self.searchLineEdit.setCompleter(completer)
+
         
     def startSearch(self):
         """ 按下按钮后开始查询ba学生攻略 """
